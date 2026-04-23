@@ -17,7 +17,7 @@ const orderSchema = new mongoose.Schema({
   source: { type: String, enum: ['POS', 'Customer'], default: 'POS' },
   orderType: { type: String, enum: ['Zalda', 'Olib ketish', 'Yetkazib'], default: 'Zalda' },
   paymentMethod: { type: String, enum: ['Naqd', 'Karta', 'QR'], default: 'Naqd' },
-  status: { type: String, enum: ['Completed', 'Pending', 'Cancelled'], default: 'Completed' }
+  status: { type: String, enum: ['Pending', 'Preparing', 'Ready', 'Completed', 'Cancelled'], default: 'Pending' }
 }, {
   timestamps: true
 });
