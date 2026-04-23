@@ -322,6 +322,34 @@ app.get('/api/stats', async (req, res) => {
       { $sort: { _id: 1 } }
     ]);
 
+    // Category Distribution (Filtered by selected day)
+    const categoryDistribution = await Order.aggregate([
+      { $match: { status: 'Completed', createdAt: { $gte: start, $lte: end } } },
+      { $unwind: '$items' },
+      { 
+        $lookup: {
+          from: 'products',
+          localField: 'items.productId',
+          foreignField: '_id',
+          as: 'productInfo'
+        }
+      },
+      { $unwind: '$productInfo' },
+      { $group: { _id: '$productInfo.category', value: { $sum: 1 } } }
+    ]);
+
+    // Peak Hours (Filtered by selected day)
+    const peakHours = await Order.aggregate([
+      { $match: { status: 'Completed', createdAt: { $gte: start, $lte: end } } },
+      { 
+        $group: { 
+          _id: { $hour: "$createdAt" }, 
+          count: { $sum: 1 } 
+        } 
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
     // Order History (Filtered by selected day)
     const recentOrders = await Order.find({ createdAt: { $gte: start, $lte: end } }).sort({ createdAt: -1 }).limit(30);
 
@@ -330,7 +358,9 @@ app.get('/api/stats', async (req, res) => {
       daily: dailyRevenue[0] || { total: 0, count: 0 },
       topProducts,
       recentOrders,
-      weeklyTrend
+      weeklyTrend,
+      categoryDistribution,
+      peakHours
     });
   } catch (err) {
     console.error('GET /api/stats Error:', err);
